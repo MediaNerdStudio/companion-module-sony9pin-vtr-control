@@ -1,0 +1,19 @@
+{
+  "id": "medianerd-sony9pin-vtr",
+  "name": "Companion sony9pin VTR Control",
+  "shortname": "sony9pin-vtr",
+  "version": "0.1.0",
+  "description": "Control Sony 9-pin (RS-422) VTR devices and Blackmagic AMP over RS-422.",
+  "author": "MediaNerd",
+  "license": "MIT",
+  "homepage": "https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control",
+  "keywords": ["companion", "sony9pin", "rs422", "vtr", "blackmagic", "amp"],
+  "manufacturer": "Sony-compatible / Blackmagic",
+  "products": ["Sony 9-pin VTR", "Blackmagic Advanced Media Protocol devices"],
+  "platforms": ["win32", "darwin", "linux"],
+  "legacyIds": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control"
+  }
+}
