@@ -11,6 +11,7 @@ class RS422VTRInstance extends InstanceBase {
     this.timecodeTimer = null
     this.reconnectTimer = null
     this.reconnectDelay = 0
+    this._statusFlagsSet = new Set()
   }
 
   async init(config) {
@@ -143,6 +144,10 @@ class RS422VTRInstance extends InstanceBase {
   getVariableDefinitions() {
     return [
       { variableId: 'timecode', name: 'Current Timecode (HH:MM:SS:FF)' },
+      { variableId: 'timecode_hh', name: 'Timecode Hours (HH)' },
+      { variableId: 'timecode_mm', name: 'Timecode Minutes (MM)' },
+      { variableId: 'timecode_ss', name: 'Timecode Seconds (SS)' },
+      { variableId: 'timecode_ff', name: 'Timecode Frames (FF)' },
       { variableId: 'status_flags', name: 'Status Flags' },
       { variableId: 'device_type', name: 'Device Type (hex)' },
     ]
@@ -347,7 +352,7 @@ class RS422VTRInstance extends InstanceBase {
       name: text,
       style: {
         text,
-        size: 'auto',
+        size: 24,
         color: 0xffffff,
         bgcolor: bg,
       },
@@ -364,37 +369,103 @@ class RS422VTRInstance extends InstanceBase {
     return [
       {
         ...styleBtn('PLAY', 0x1e7f1e),
-        actions: [{ actionId: 'play' }],
+        steps: [ { down: [{ actionId: 'play' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'PLAY' }, style: { bgcolor: 0x00aa00 } }],
       },
       {
         ...styleBtn('STOP', 0x7f1e1e),
-        actions: [{ actionId: 'stop' }],
+        steps: [ { down: [{ actionId: 'stop' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'STOP' }, style: { bgcolor: 0xaa0000 } }],
       },
       {
-        ...styleBtn('FF >>', 0x3a3a7f),
-        actions: [{ actionId: 'ff' }],
+        ...styleBtn('>>\nFF', 0x3a3a7f),
+        steps: [ { down: [{ actionId: 'ff' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'SHUTTLE' }, style: { bgcolor: 0x3a7fff } }],
       },
       {
-        ...styleBtn('<< REW', 0x3a3a7f),
-        actions: [{ actionId: 'rew' }],
+        ...styleBtn('<<\nREW', 0x3a3a7f),
+        steps: [ { down: [{ actionId: 'rew' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'SHUTTLE' }, style: { bgcolor: 0x3a7fff } }],
       },
       {
         ...styleBtn('RECORD', 0x9b0000),
-        actions: [{ actionId: 'record' }],
+        steps: [ { down: [{ actionId: 'record' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'RECORD' }, style: { bgcolor: 0xff0000 } }],
       },
       {
         ...styleBtn('STANDBY ON', 0x555555),
-        actions: [{ actionId: 'standby_on' }],
+        steps: [ { down: [{ actionId: 'standby_on' }], up: [] } ],
         feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'STANDBY' }, style: { bgcolor: 0x777777 } }],
       },
       {
         ...styleBtn('STANDBY OFF', 0x555555),
-        actions: [{ actionId: 'standby_off' }],
+        steps: [ { down: [{ actionId: 'standby_off' }], up: [] } ],
+      },
+      // Timecode display presets
+      {
+        type: 'button',
+        category: 'Timecode',
+        name: 'TC Full',
+        style: {
+          text: '$(sony9pin-vtr:timecode)',
+          size: 18,
+          color: 0xffffff,
+          bgcolor: 0x333333,
+        },
+        steps: [ { down: [], up: [] } ],
+        feedbacks: [],
+      },
+      {
+        type: 'button',
+        category: 'Timecode',
+        name: 'TC Hours',
+        style: {
+          text: '$(sony9pin-vtr:timecode_hh)',
+          size: 'auto',
+          color: 0xffffff,
+          bgcolor: 0x333333,
+        },
+        steps: [ { down: [], up: [] } ],
+        feedbacks: [],
+      },
+      {
+        type: 'button',
+        category: 'Timecode',
+        name: 'TC Minutes',
+        style: {
+          text: '$(sony9pin-vtr:timecode_mm)',
+          size: 'auto',
+          color: 0xffffff,
+          bgcolor: 0x333333,
+        },
+        steps: [ { down: [], up: [] } ],
+        feedbacks: [],
+      },
+      {
+        type: 'button',
+        category: 'Timecode',
+        name: 'TC Seconds',
+        style: {
+          text: '$(sony9pin-vtr:timecode_ss)',
+          size: 'auto',
+          color: 0xffffff,
+          bgcolor: 0x333333,
+        },
+        steps: [ { down: [], up: [] } ],
+        feedbacks: [],
+      },
+      {
+        type: 'button',
+        category: 'Timecode',
+        name: 'TC Frames',
+        style: {
+          text: '$(sony9pin-vtr:timecode_ff)',
+          size: 'auto',
+          color: 0xffffff,
+          bgcolor: 0x333333,
+        },
+        steps: [ { down: [], up: [] } ],
+        feedbacks: [],
       },
     ]
   }
@@ -408,8 +479,7 @@ class RS422VTRInstance extends InstanceBase {
         options: [ { type: 'textinput', id: 'flag', label: 'Flag string (e.g., PLAY, STOP, RECORD)', default: 'PLAY' } ],
         callback: (fb) => {
           const flag = String(fb.options.flag || '').toUpperCase()
-          const flags = (this?.getVariableValue?.('status_flags') || '').toUpperCase()
-          return flags.includes(flag)
+          return this._statusFlagsSet?.has(flag) || false
         },
       },
     }
@@ -437,12 +507,20 @@ class RS422VTRInstance extends InstanceBase {
       this.vtr.on('status', (m) => {
         const flags = m.flags?.join(', ') || ''
         this.setVariableValues({ status_flags: flags })
+        try {
+          this._statusFlagsSet = new Set((m.flags || []).map((f) => String(f).toUpperCase()))
+          this.checkFeedbacks?.('status_flag')
+        } catch {}
       })
       this.vtr.on('timecode', (m) => {
         const tc = m.timecode
         if (tc) {
           const s = `${String(tc.hours).padStart(2, '0')}:${String(tc.minutes).padStart(2, '0')}:${String(tc.seconds).padStart(2, '0')}:${String(tc.frames).padStart(2, '0')}`
-          this.setVariableValues({ timecode: s })
+          const hh = s.slice(0, 2)
+          const mm = s.slice(3, 5)
+          const ss = s.slice(6, 8)
+          const ff = s.slice(9, 11)
+          this.setVariableValues({ timecode: s, timecode_hh: hh, timecode_mm: mm, timecode_ss: ss, timecode_ff: ff })
         }
       })
 
