@@ -12,6 +12,7 @@ class RS422VTRInstance extends InstanceBase {
     this.reconnectTimer = null
     this.reconnectDelay = 0
     this._statusFlagsSet = new Set()
+    this._connStatus = InstanceStatus.Disconnected
   }
 
   async init(config) {
@@ -22,6 +23,16 @@ class RS422VTRInstance extends InstanceBase {
     this.setVariableDefinitions(this.getVariableDefinitions())
     this.setPresetDefinitions(this.getPresetDefinitions())
     this.setFeedbackDefinitions(this.getFeedbackDefinitions())
+
+    // Wrap updateStatus to cache connection status and trigger feedback checks
+    if (!this._updateStatus) {
+      this._updateStatus = this.updateStatus.bind(this)
+      this.updateStatus = (status, message) => {
+        this._connStatus = status
+        try { this.checkFeedbacks?.('connection_state') } catch {}
+        return this._updateStatus(status, message)
+      }
+    }
 
     await this.initConnection()
   }
@@ -368,52 +379,97 @@ class RS422VTRInstance extends InstanceBase {
 
     return [
       {
-        ...styleBtn('PLAY', 0x1e7f1e),
+        ...styleBtn('▶\nPLAY', 0x1e7f1e),
         steps: [ { down: [{ actionId: 'play' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'PLAY' }, style: { bgcolor: 0x00aa00 } }],
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'PLAY' }, style: { bgcolor: 0x00aa00 } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
       {
-        ...styleBtn('STOP', 0x7f1e1e),
+        ...styleBtn('■\nSTOP', 0x7f1e1e),
         steps: [ { down: [{ actionId: 'stop' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'STOP' }, style: { bgcolor: 0xaa0000 } }],
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'STOP' }, style: { bgcolor: 0xaa0000 } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
       {
-        ...styleBtn('>>\nFF', 0x3a3a7f),
-        steps: [ { down: [{ actionId: 'ff' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'SHUTTLE' }, style: { bgcolor: 0x3a7fff } }],
-      },
-      {
-        ...styleBtn('<<\nREW', 0x3a3a7f),
+        ...styleBtn('⏪\nREW', 0x3a3a7f),
         steps: [ { down: [{ actionId: 'rew' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'SHUTTLE' }, style: { bgcolor: 0x3a7fff } }],
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'REVERSE' }, style: { bgcolor: 0x3a7fff } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
       {
-        ...styleBtn('RECORD', 0x9b0000),
+        ...styleBtn('⏩\nFF', 0x3a3a7f),
+        steps: [ { down: [{ actionId: 'ff' }], up: [] } ],
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'FORWARD' }, style: { bgcolor: 0x3a7fff } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
+      },      
+      {
+        ...styleBtn('⏺\nREC', 0x9b0000),
         steps: [ { down: [{ actionId: 'record' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'RECORD' }, style: { bgcolor: 0xff0000 } }],
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'RECORD' }, style: { bgcolor: 0xff0000 } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
       {
-        ...styleBtn('STANDBY ON', 0x555555),
-        steps: [ { down: [{ actionId: 'standby_on' }], up: [] } ],
-        feedbacks: [{ feedbackId: 'status_flag', options: { flag: 'STANDBY' }, style: { bgcolor: 0x777777 } }],
+        ...styleBtn('🎯\\n00:00', 0x9B8700),
+        steps: [ { down: [{ actionId: 'cue_up_with_data', options: { hh: 0, mm: 0, ss: 0, ff: 0 } }], up: [] } ],
+        feedbacks: [
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
       {
-        ...styleBtn('STANDBY OFF', 0x555555),
-        steps: [ { down: [{ actionId: 'standby_off' }], up: [] } ],
+        ...styleBtn('⏻\nSTBY\nON/OFF', 0x555555),
+        steps: [ 
+          { down: [{ actionId: 'standby_on' }], up: [] }, 
+          { down: [{ actionId: 'standby_off' }], up: [] } 
+        ],
+        style: {
+          size: 18,
+          text: '⏻\\nSTBY\\nON/OFF',
+        },
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'STANDBY' }, style: { bgcolor: 0x777777 } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
       },
+      {
+        ...styleBtn('▶/■\\nPLAY/STOP', 0x2e2e2e),
+        steps: [
+          { down: [{ actionId: 'play' }], up: [] },
+          { down: [{ actionId: 'stop' }], up: [] },
+        ],
+        style: {
+          size: 18,
+          text: '▶/■\\nPLAY\nSTOP',
+        },
+        feedbacks: [
+          { feedbackId: 'status_flag', options: { flag: 'PLAY' }, style: { bgcolor: 0x00aa00, color: 0xffffff } },
+          { feedbackId: 'status_flag', options: { flag: 'STOP' }, style: { bgcolor: 0xaa0000, color: 0xffffff } },
+          { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } },
+        ],
+      },
+      
       // Timecode display presets
       {
         type: 'button',
         category: 'Timecode',
         name: 'TC Full',
         style: {
-          text: '$(sony9pin-vtr:timecode)',
+          text: '⏱\\n$(sony9pin-vtr:timecode_hh):$(sony9pin-vtr:timecode_mm)\\n$(sony9pin-vtr:timecode_ss).$(sony9pin-vtr:timecode_ff)',
           size: 18,
           color: 0xffffff,
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
-        feedbacks: [],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
       {
         type: 'button',
@@ -426,7 +482,7 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
-        feedbacks: [],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
       {
         type: 'button',
@@ -439,7 +495,7 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
-        feedbacks: [],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
       {
         type: 'button',
@@ -452,7 +508,7 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
-        feedbacks: [],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
       {
         type: 'button',
@@ -465,7 +521,7 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
-        feedbacks: [],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
     ]
   }
@@ -481,6 +537,13 @@ class RS422VTRInstance extends InstanceBase {
           const flag = String(fb.options.flag || '').toUpperCase()
           return this._statusFlagsSet?.has(flag) || false
         },
+      },
+      connection_state: {
+        name: 'Instance not connected',
+        type: 'boolean',
+        defaultStyle: {},
+        options: [],
+        callback: () => this._connStatus !== InstanceStatus.Ok,
       },
     }
   }
