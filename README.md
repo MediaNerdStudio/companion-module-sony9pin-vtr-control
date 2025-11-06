@@ -1,6 +1,6 @@
-# MediaNerd RS-422 VTR – Bitfocus Companion Module
+# Sony RS-422 VTR Control – Bitfocus Companion Module
 
-Control Sony 9‑pin (RS‑422) VTR/deck devices from Bitfocus Companion using the MediaNerd `sony9pin-nodejs` library.
+Control Sony 9-pin (RS-422) VTR/deck devices from Bitfocus Companion using the MediaNerd `sony9pin-nodejs` library.
 
 - Connection: Windows COM port (38400 8O1 by default)
 - Actions: Play, Stop, Rewind, Fast Forward, Record, Standby On/Off, Cue Up with Data, Current Time Sense (Auto/LTC/VITC), Status Sense
