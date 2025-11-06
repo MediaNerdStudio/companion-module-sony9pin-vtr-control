@@ -22,6 +22,15 @@ npm i
 - Serial options as needed
 - Enable `Debug` for verbose TX/RX logging
 
+## Hardware used
+
+Tested with these RS‑422 interfaces and device server:
+
+- Delock USB 2.0 Adapter to 1 x Serial RS‑422/485
+  - https://www.delock.com/produkt/87585/merkmale.html?g=3RS4_4_1
+- MOXA NPort 5150 – Serial Device Server
+  - https://www.moxa.com/en/products/industrial-edge-connectivity/serial-device-servers/general-device-servers/nport-5100-series/nport-5150
+
 ## Notes
 - Requires Node 18+
-- Uses `sony9pin-nodejs` via local file dependency pointing at `../MediaNerd.RS422VTR`
+- Uses `sony9pin-nodejs` published on npm ("latest")
