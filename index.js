@@ -353,6 +353,83 @@ class RS422VTRInstance extends InstanceBase {
           return this.safeSend(() => this.bm?.raw?.(p(e.options.cmd1), p(e.options.cmd2), d))
         },
       },
+      bm_auto_skip: {
+        name: 'BM AutoSkip (±clips)',
+        options: [ { type: 'number', id: 'delta', label: 'Delta clips (-10..10)', default: 1, min: -10, max: 10 } ],
+        callback: async (e) => this.safeSend(() => this.bm?.autoSkip?.(e.options.delta|0)),
+      },
+      bm_list_next_id_single: {
+        name: 'BM ListNextID (single)',
+        options: [],
+        callback: async () => this.safeSend(() => this.bm?.listNextIdSingle?.()),
+      },
+      bm_list_next_id: {
+        name: 'BM ListNextID (count)',
+        options: [ { type: 'number', id: 'count', label: 'Count (1..10)', default: 3, min: 1, max: 10 } ],
+        callback: async (e) => this.safeSend(() => this.bm?.listNextId?.(e.options.count|0)),
+      },
+      bm_clear_playlist: {
+        name: 'BM Clear Playlist',
+        options: [],
+        callback: async () => this.safeSend(() => this.bm?.clearPlaylist?.()),
+      },
+      bm_set_playback_loop: {
+        name: 'BM Set Playback Loop',
+        options: [
+          { type: 'checkbox', id: 'enable', label: 'Enable', default: true },
+          { type: 'checkbox', id: 'timeline', label: 'Timeline (vs Single Clip)', default: false },
+        ],
+        callback: async (e) => this.safeSend(() => this.bm?.setPlaybackLoop?.({ enable: !!e.options.enable, timeline: !!e.options.timeline })),
+      },
+      bm_set_stop_mode: {
+        name: 'BM Set Stop Mode',
+        options: [
+          { type: 'dropdown', id: 'mode', label: 'Mode', default: 1, choices: [
+            { id: 0, label: '0 - Off' },
+            { id: 1, label: '1 - Freeze Last' },
+            { id: 2, label: '2 - Freeze Next' },
+            { id: 3, label: '3 - Black' },
+          ]},
+        ],
+        callback: async (e) => this.safeSend(() => this.bm?.setStopMode?.(Number(e.options.mode))),
+      },
+      bm_append_preset: {
+        name: 'BM Append Preset',
+        options: [
+          { type: 'textinput', id: 'name', label: 'Name', default: 'Preset' },
+          { type: 'number', id: 'in_hh', label: 'IN HH', default: 0, min: 0, max: 23 },
+          { type: 'number', id: 'in_mm', label: 'IN MM', default: 0, min: 0, max: 59 },
+          { type: 'number', id: 'in_ss', label: 'IN SS', default: 5, min: 0, max: 59 },
+          { type: 'number', id: 'in_ff', label: 'IN FF', default: 0, min: 0, max: 59 },
+          { type: 'number', id: 'out_hh', label: 'OUT HH', default: 0, min: 0, max: 23 },
+          { type: 'number', id: 'out_mm', label: 'OUT MM', default: 0, min: 0, max: 59 },
+          { type: 'number', id: 'out_ss', label: 'OUT SS', default: 10, min: 0, max: 59 },
+          { type: 'number', id: 'out_ff', label: 'OUT FF', default: 0, min: 0, max: 59 },
+        ],
+        callback: async (e) => this.safeSend(() => this.bm?.appendPreset?.(
+          e.options.name,
+          { hh: e.options.in_hh|0, mm: e.options.in_mm|0, ss: e.options.in_ss|0, ff: e.options.in_ff|0 },
+          { hh: e.options.out_hh|0, mm: e.options.out_mm|0, ss: e.options.out_ss|0, ff: e.options.out_ff|0 },
+        )),
+      },
+      bm_seek_timeline_pos: {
+        name: 'BM Seek Timeline Position',
+        options: [ { type: 'number', id: 'pos', label: 'Position (0..1)', default: 0.5, min: 0, max: 1, step: 0.01 } ],
+        callback: async (e) => this.safeSend(() => this.bm?.seekToTimelinePosition?.(Number(e.options.pos))),
+      },
+      bm_seek_relative_clip: {
+        name: 'BM Seek Relative Clip (±clips)',
+        options: [ { type: 'number', id: 'delta', label: 'Delta clips (-10..10)', default: 1, min: -10, max: 10 } ],
+        callback: async (e) => this.safeSend(() => this.bm?.seekRelativeClip?.(e.options.delta|0)),
+      },
+      bm_poll_timecode: {
+        name: 'BM Poll Timecode (AUTO)',
+        options: [
+          { type: 'number', id: 'intervalMs', label: 'Interval (ms)', default: 250, min: 20, max: 5000, step: 10 },
+          { type: 'number', id: 'durationMs', label: 'Duration (ms)', default: 2000, min: 100, max: 60000, step: 50 },
+        ],
+        callback: async (e) => this.safeSend(() => this.bm?.pollTimecode?.({ intervalMs: e.options.intervalMs|0, durationMs: e.options.durationMs|0 })),
+      },
     }
   }
 
@@ -469,6 +546,88 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      
+      // Blackmagic AMP presets
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Loop Clip ON',
+        style: { text: '⟲\\nLOOP CLIP', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: true, timeline: false } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Loop Timeline ON',
+        style: { text: '⟲\\nLOOP TL', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: true, timeline: true } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Loop OFF',
+        style: { text: '⟲\\nLOOP OFF', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: false, timeline: false } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Stop=Freeze Last',
+        style: { text: '🧊\\nFREEZE LAST', size: 18, color: 0xffffff, bgcolor: 0x884444 },
+        steps: [ { down: [ { actionId: 'bm_set_stop_mode', options: { mode: 1 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Skip +1 Clip',
+        style: { text: '⏭\\n+1 CLIP', size: 18, color: 0xffffff, bgcolor: 0x446688 },
+        steps: [ { down: [ { actionId: 'bm_auto_skip', options: { delta: 1 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Skip -1 Clip',
+        style: { text: '⏮\\n-1 CLIP', size: 18, color: 0xffffff, bgcolor: 0x446688 },
+        steps: [ { down: [ { actionId: 'bm_auto_skip', options: { delta: -1 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Seek 50%',
+        style: { text: '🎯\\nSEEK 50%', size: 18, color: 0xffffff, bgcolor: 0x446644 },
+        steps: [ { down: [ { actionId: 'bm_seek_timeline_pos', options: { pos: 0.5 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Clear Playlist',
+        style: { text: '🧹\\nCLEAR PL', size: 18, color: 0xffffff, bgcolor: 0x664466 },
+        steps: [ { down: [ { actionId: 'bm_clear_playlist' } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'List Next IDs',
+        style: { text: '📄\\nNEXT 3', size: 18, color: 0xffffff, bgcolor: 0x666644 },
+        steps: [ { down: [ { actionId: 'bm_list_next_id', options: { count: 3 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Blackmagic AMP',
+        name: 'Append Preset Demo',
+        style: { text: '➕\\nPRESET', size: 18, color: 0xffffff, bgcolor: 0x446666 },
+        steps: [ { down: [ { actionId: 'bm_append_preset', options: { name: 'Demo', in_hh: 0, in_mm: 0, in_ss: 5, in_ff: 0, out_hh: 0, out_mm: 0, out_ss: 10, out_ff: 0 } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
       {

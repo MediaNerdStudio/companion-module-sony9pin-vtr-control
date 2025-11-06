@@ -9,7 +9,18 @@ Control Sony 9‑pin (RS‑422) VTR/deck devices and Blackmagic AMP devices from
 - Transport: Play, Stop, FF/REW, Record, Standby On/Off, Eject, Sync Play, Preview/Review, Frame Step Fwd/Rev, Jog, Var Speed, Shuttle
 - Preset/Select: In/Out Entry, In/Out Data Preset, Preroll Preset, Auto Mode On/Off, Input Check
 - Sense: Status Sense, Current Time Sense (AUTO/LTC/VITC), TC Gen Sense, IN/OUT Data Sense
-- Blackmagic AMP helpers: timecodeAuto, raw sender (cmd1/cmd2/data)
+- Blackmagic AMP helpers (requires `sony9pin-nodejs` ≥ 0.5.0):
+  - timecodeAuto
+  - raw (cmd1/cmd2/data)
+  - autoSkip(±clips)
+  - listNextIdSingle(), listNextId(count)
+  - clearPlaylist()
+  - setPlaybackLoop({ enable, timeline })
+  - setStopMode(mode: 0..3)
+  - appendPreset(name, inTc, outTc)
+  - seekToTimelinePosition(pos 0..1)
+  - seekRelativeClip(±clips)
+  - pollTimecode({ intervalMs, durationMs })
 - Variables: timecode (and split hh/mm/ss/ff), status_flags, device_type
 - Feedbacks: status_flag (matches any reported status flag)
 - Polling + Reconnect: Configurable polling intervals and exponential backoff reconnect
@@ -58,7 +69,19 @@ When you add this module, configure:
 - Locate: cue_up_with_data(hh,mm,ss,ff)
 - Preset/Select: in_entry, out_entry, in_data_preset(hh,mm,ss,ff), out_data_preset(hh,mm,ss,ff), preroll_preset(hh,mm,ss,ff), auto_mode_on, auto_mode_off, input_check
 - Sense: status_sense(start,size), timecode_sense(mode: auto/ltc/vitc), tc_gen_sense, in_data_sense, out_data_sense
-- Blackmagic AMP: bm_timecode_auto, bm_raw(cmd1, cmd2, data bytes)
+- Blackmagic AMP:
+  - bm_timecode_auto
+  - bm_raw(cmd1, cmd2, data)
+  - bm_auto_skip(delta)
+  - bm_list_next_id_single
+  - bm_list_next_id(count)
+  - bm_clear_playlist
+  - bm_set_playback_loop(enable, timeline)
+  - bm_set_stop_mode(mode: 0..3)
+  - bm_append_preset(name, in_hh/mm/ss/ff, out_hh/mm/ss/ff)
+  - bm_seek_timeline_pos(pos 0..1)
+  - bm_seek_relative_clip(delta)
+  - bm_poll_timecode(intervalMs, durationMs)
 
 ---
 
@@ -92,6 +115,15 @@ When you add this module, configure:
   - TC Seconds: `$(sony9pin-vtr:timecode_ss)`
   - TC Frames: `$(sony9pin-vtr:timecode_ff)`
 
+- Blackmagic AMP (category):
+  - Loop Clip ON, Loop Timeline ON, Loop OFF
+  - Stop=Freeze Last
+  - Skip +1 Clip, Skip -1 Clip
+  - Seek 50%
+  - Clear Playlist
+  - List Next IDs (count)
+  - Append Preset Demo
+
 ---
 
 ## Hardware used
@@ -119,6 +151,7 @@ Any reliable RS‑422 interface or device server with 38400 8O1 should work.
   - Use Timecode Sense AUTO; ensure VITC/LTC enabled on the deck
 - Blackmagic AMP:
   - Use `bm_raw` with the exact cmd1/cmd2/data per device manual
+  - Some commands depend on deck/firmware support
 
 ---
 

@@ -4,7 +4,20 @@ Control Sony 9-pin (RS-422) VTR/deck devices from Bitfocus Companion using the M
 
 - Connection: Windows COM port (38400 8O1 by default)
 - Actions: Play, Stop, Rewind, Fast Forward, Record, Standby On/Off, Cue Up with Data, Current Time Sense (Auto/LTC/VITC), Status Sense
+- Blackmagic AMP helpers (requires `sony9pin-nodejs` ≥ 0.5.0):
+  - timecodeAuto
+  - raw (cmd1/cmd2/data)
+  - autoSkip(±clips)
+  - listNextIdSingle(), listNextId(count)
+  - clearPlaylist()
+  - setPlaybackLoop({ enable, timeline })
+  - setStopMode(mode: 0..3)
+  - appendPreset(name, inTc, outTc)
+  - seekToTimelinePosition(pos 0..1)
+  - seekRelativeClip(±clips)
+  - pollTimecode({ intervalMs, durationMs })
 - Variables: `timecode`, `status_flags`, `device_type`
+- Presets: Transport, Timecode, and a set of Blackmagic AMP control presets (Loop, Stop mode, Skip clips, Seek %, Clear playlist, List next IDs, Append preset)
 
 ## Development
 
@@ -33,4 +46,4 @@ Tested with these RS‑422 interfaces and device server:
 
 ## Notes
 - Requires Node 18+
-- Uses `sony9pin-nodejs` published on npm ("latest")
+- Depends on `sony9pin-nodejs@0.5.0` for Blackmagic AMP helpers
