@@ -16,8 +16,11 @@ Control Sony 9-pin (RS-422) VTR/deck devices from Bitfocus Companion using the M
   - seekToTimelinePosition(pos 0..1)
   - seekRelativeClip(±clips)
   - pollTimecode({ intervalMs, durationMs })
+- Odetics helpers (requires `sony9pin-nodejs` ≥ 0.6.3):
+  - Core: raw, deviceIdRequest, listFirstId, listNextId, listClipTc, setDeviceId, makeClip(variant), live, getEvent
+  - Cue helpers: cueByTimecode, loadAndCueById, loadByIdAndCueByTimecode
 - Variables: `timecode`, `status_flags`, `device_type`
-- Presets: Transport, Timecode, and a set of Blackmagic AMP control presets (Loop, Stop mode, Skip clips, Seek %, Clear playlist, List next IDs, Append preset)
+- Presets: Transport, Timecode, Blackmagic AMP (Loop, Stop mode, Skip clips, Seek %, Clear playlist, List next IDs, Append preset), and Odetics (Device ID, First/Next, Next, Clip TC, Go LIVE, Cue by TC, Load+Cue by ID, Load ID + Cue TC)
 
 ## Development
 
@@ -46,4 +49,4 @@ Tested with these RS‑422 interfaces and device server:
 
 ## Notes
 - Requires Node 18+
-- Depends on `sony9pin-nodejs@0.5.0` for Blackmagic AMP helpers
+- Depends on `sony9pin-nodejs@0.6.3` for Odetics helpers and retains AMP helpers

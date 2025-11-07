@@ -1,3 +1,6 @@
+ - Odetics (category):
+  - Device ID, First/Next, Next, Clip TC, Go LIVE
+  - Cue by TC, Load+Cue by ID, Load ID + Cue TC
 # Sony9pin VTR Control
 
 Control Sony 9‑pin (RS‑422) VTR/deck devices and Blackmagic AMP devices from Bitfocus Companion. Uses the public `sony9pin-nodejs` library.
@@ -24,6 +27,10 @@ Control Sony 9‑pin (RS‑422) VTR/deck devices and Blackmagic AMP devices from
 - Variables: timecode (and split hh/mm/ss/ff), status_flags, device_type
 - Feedbacks: status_flag (matches any reported status flag)
 - Polling + Reconnect: Configurable polling intervals and exponential backoff reconnect
+
+- Odetics helpers (requires `sony9pin-nodejs` ≥ 0.6.3):
+  - Core: raw, deviceIdRequest, listFirstId, listNextId, listClipTc, setDeviceId, makeClip(variant), live, getEvent
+  - Cue helpers: cueByTimecode, loadAndCueById, loadByIdAndCueByTimecode
 
 ---
 
@@ -82,6 +89,19 @@ When you add this module, configure:
   - bm_seek_timeline_pos(pos 0..1)
   - bm_seek_relative_clip(delta)
   - bm_poll_timecode(intervalMs, durationMs)
+
+- Odetics:
+  - od_raw(cmd1, cmd2, data)
+  - od_device_id_request
+  - od_list_first_id, od_list_next_id
+  - od_list_clip_tc
+  - od_set_device_id(bytes)
+  - od_make_clip(variant, data)
+  - od_live(bytes)
+  - od_get_event
+  - od_cue_by_timecode(hh,mm,ss,ff)
+  - od_load_and_cue_by_id(lsmId)
+  - od_load_by_id_and_cue_by_tc(lsmId, hh,mm,ss,ff)
 
 ---
 
@@ -152,6 +172,10 @@ Any reliable RS‑422 interface or device server with 38400 8O1 should work.
 - Blackmagic AMP:
   - Use `bm_raw` with the exact cmd1/cmd2/data per device manual
   - Some commands depend on deck/firmware support
+
+- Odetics:
+  - Use `od_raw` for device-specific commands not listed above
+  - Some commands depend on device firmware and configuration
 
 ---
 

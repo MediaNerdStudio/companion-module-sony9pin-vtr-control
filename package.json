@@ -1,7 +1,7 @@
 {
   "name": "@medianerd/companion-module-sony9pin-vtr-control",
   "displayName": "Companion sony9pin VTR Control",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "private": true,
   "description": "Bitfocus Companion module to control Sony 9-pin (RS-422) VTR devices using MediaNerd.RS422VTR library",
   "homepage": "https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control",
@@ -25,6 +25,6 @@
   "license": "MIT",
   "dependencies": {
     "@companion-module/base": "^1.7.0",
-    "sony9pin-nodejs": "0.6.0"
+    "sony9pin-nodejs": "0.6.3"
   }
 }
