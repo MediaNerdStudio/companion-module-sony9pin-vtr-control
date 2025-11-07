@@ -482,6 +482,37 @@ class RS422VTRInstance extends InstanceBase {
         },
       },
       od_get_event: { name: 'OD Get Event', options: [], callback: async () => this.safeSend(() => this.od?.getEvent?.()) },
+      
+      // Odetics: Cue helpers (sony9pin-nodejs >= 0.6.3)
+      od_cue_by_timecode: {
+        name: 'OD Cue by Timecode',
+        options: [
+          { type: 'number', id: 'hh', label: 'HH', default: 1, min: 0, max: 23 },
+          { type: 'number', id: 'mm', label: 'MM', default: 2, min: 0, max: 59 },
+          { type: 'number', id: 'ss', label: 'SS', default: 3, min: 0, max: 59 },
+          { type: 'number', id: 'ff', label: 'FF', default: 4, min: 0, max: 59 },
+        ],
+        callback: async (e) => this.safeSend(() => this.od?.cueByTimecode?.({ hh: e.options.hh|0, mm: e.options.mm|0, ss: e.options.ss|0, ff: e.options.ff|0 })),
+      },
+      od_load_and_cue_by_id: {
+        name: 'OD Load and Cue by LSM ID',
+        options: [ { type: 'textinput', id: 'lsm', label: 'LSM ID (e.g., 114A/00)', default: '114A/00' } ],
+        callback: async (e) => this.safeSend(() => this.od?.loadAndCueById?.(String(e.options.lsm||''))),
+      },
+      od_load_by_id_and_cue_by_tc: {
+        name: 'OD Load by ID and Cue by Timecode',
+        options: [
+          { type: 'textinput', id: 'lsm', label: 'LSM ID (e.g., 120C/12)', default: '120C/12' },
+          { type: 'number', id: 'hh', label: 'HH', default: 1, min: 0, max: 23 },
+          { type: 'number', id: 'mm', label: 'MM', default: 2, min: 0, max: 59 },
+          { type: 'number', id: 'ss', label: 'SS', default: 3, min: 0, max: 59 },
+          { type: 'number', id: 'ff', label: 'FF', default: 4, min: 0, max: 59 },
+        ],
+        callback: async (e) => this.safeSend(() => this.od?.loadByIdAndCueByTimecode?.(
+          String(e.options.lsm||''),
+          { hh: e.options.hh|0, mm: e.options.mm|0, ss: e.options.ss|0, ff: e.options.ff|0 }
+        )),
+      },
     }
   }
 
@@ -732,6 +763,32 @@ class RS422VTRInstance extends InstanceBase {
           bgcolor: 0x333333,
         },
         steps: [ { down: [], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      
+      // Odetics presets
+      {
+        type: 'button',
+        category: 'Odetics',
+        name: 'Cue by TC',
+        style: { text: '🎯\\nCUE TC', size: 18, color: 0xffffff, bgcolor: 0x446644 },
+        steps: [ { down: [ { actionId: 'od_cue_by_timecode', options: { hh: 1, mm: 2, ss: 3, ff: 4 } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Odetics',
+        name: 'Load+Cue by ID',
+        style: { text: '📄\\nLOAD +\\nCUE ID', size: 14, color: 0xffffff, bgcolor: 0x556655 },
+        steps: [ { down: [ { actionId: 'od_load_and_cue_by_id', options: { lsm: '114A/00' } } ], up: [] } ],
+        feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
+      },
+      {
+        type: 'button',
+        category: 'Odetics',
+        name: 'Load ID + Cue TC',
+        style: { text: '📄🎯\\nLOAD\\nID+TC', size: 18, color: 0xffffff, bgcolor: 0x665544 },
+        steps: [ { down: [ { actionId: 'od_load_by_id_and_cue_by_tc', options: { lsm: '120C/12', hh: 1, mm: 2, ss: 3, ff: 4 } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
     ]
