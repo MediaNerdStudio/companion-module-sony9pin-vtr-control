@@ -2,7 +2,7 @@
   "id": "medianerd-sony9pin-vtr",
   "name": "Companion sony9pin VTR Control",
   "shortname": "sony9pin-vtr",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Control Sony 9-pin (RS-422) VTR devices and Blackmagic AMP over RS-422.",
   "author": "MediaNerd",
   "license": "MIT",
