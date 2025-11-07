@@ -1,11 +1,12 @@
 import { InstanceBase, runEntrypoint, InstanceStatus } from '@companion-module/base'
-import { VTR422, CurrentTimeSenseFlag, BlackmagicAMP, Encoder } from 'sony9pin-nodejs'
+import { VTR422, CurrentTimeSenseFlag, BlackmagicAMP, Odetics, Encoder } from 'sony9pin-nodejs'
 
 class RS422VTRInstance extends InstanceBase {
   constructor(internal) {
     super(internal)
     this.vtr = null
     this.bm = null
+    this.od = null
     this.config = {}
     this.statusTimer = null
     this.timecodeTimer = null
@@ -430,6 +431,57 @@ class RS422VTRInstance extends InstanceBase {
         ],
         callback: async (e) => this.safeSend(() => this.bm?.pollTimecode?.({ intervalMs: e.options.intervalMs|0, durationMs: e.options.durationMs|0 })),
       },
+
+      // Odetics helpers
+      od_raw: {
+        name: 'OD RAW (cmd1/cmd2/data...)',
+        options: [
+          { type: 'textinput', id: 'cmd1', label: 'cmd1 (hex e.g. 0xA0)', default: '0xA0' },
+          { type: 'textinput', id: 'cmd2', label: 'cmd2 (hex e.g. 0x21)', default: '0x21' },
+          { type: 'textinput', id: 'data', label: 'data bytes (space/comma-separated, hex or dec)', default: '' },
+        ],
+        callback: async (e) => {
+          const p = (v) => { const s = String(v).trim(); return s.startsWith('0x') ? parseInt(s, 16) : parseInt(s, 10) }
+          const d = String(e.options.data || '').split(/[ ,]+/).map((x)=>x.trim()).filter(Boolean).map(p)
+          return this.safeSend(() => this.od?.raw?.(p(e.options.cmd1), p(e.options.cmd2), d))
+        },
+      },
+      od_device_id_request: { name: 'OD Device ID Request', options: [], callback: async () => this.safeSend(() => this.od?.deviceIdRequest?.()) },
+      od_list_first_id: { name: 'OD List First ID', options: [], callback: async () => this.safeSend(() => this.od?.listFirstId?.()) },
+      od_list_next_id: { name: 'OD List Next ID', options: [], callback: async () => this.safeSend(() => this.od?.listNextId?.()) },
+      od_list_clip_tc: { name: 'OD List Clip TC', options: [], callback: async () => this.safeSend(() => this.od?.listClipTc?.()) },
+      od_set_device_id: {
+        name: 'OD Set Device ID (bytes)',
+        options: [ { type: 'textinput', id: 'bytes', label: 'Device ID bytes (space/comma sep)', default: '0x00 0x01' } ],
+        callback: async (e) => {
+          const p = (v) => { const s = String(v).trim(); return s.startsWith('0x') ? parseInt(s, 16) : parseInt(s, 10) }
+          const arr = String(e.options.bytes||'').split(/[ ,]+/).map((x)=>x.trim()).filter(Boolean).map(p)
+          return this.safeSend(() => this.od?.setDeviceId?.(...arr))
+        },
+      },
+      od_make_clip: {
+        name: 'OD Make Clip (variant + data)',
+        options: [
+          { type: 'textinput', id: 'variant', label: 'cmd1 variant (hex 0xB0..0xBF)', default: '0xB0' },
+          { type: 'textinput', id: 'data', label: 'data bytes', default: '' },
+        ],
+        callback: async (e) => {
+          const p = (v) => { const s = String(v).trim(); return s.startsWith('0x') ? parseInt(s, 16) : parseInt(s, 10) }
+          const v = p(e.options.variant)
+          const arr = String(e.options.data||'').split(/[ ,]+/).map((x)=>x.trim()).filter(Boolean).map(p)
+          return this.safeSend(() => this.od?.makeClip?.(v, ...arr))
+        },
+      },
+      od_live: {
+        name: 'OD Live (camera bytes)',
+        options: [ { type: 'textinput', id: 'bytes', label: 'payload bytes', default: '' } ],
+        callback: async (e) => {
+          const p = (v) => { const s = String(v).trim(); return s.startsWith('0x') ? parseInt(s, 16) : parseInt(s, 10) }
+          const arr = String(e.options.bytes||'').split(/[ ,]+/).map((x)=>x.trim()).filter(Boolean).map(p)
+          return this.safeSend(() => this.od?.live?.(...arr))
+        },
+      },
+      od_get_event: { name: 'OD Get Event', options: [], callback: async () => this.safeSend(() => this.od?.getEvent?.()) },
     }
   }
 
@@ -554,7 +606,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Loop Clip ON',
-        style: { text: '⟲\\nLOOP CLIP', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        style: { text: '⟲\\nLOOP\nCLIP', size: 18, color: 0xffffff, bgcolor: 0x444488 },
         steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: true, timeline: false } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -562,7 +614,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Loop Timeline ON',
-        style: { text: '⟲\\nLOOP TL', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        style: { text: '⟲\\nLOOP\\nTL', size: 18, color: 0xffffff, bgcolor: 0x444488 },
         steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: true, timeline: true } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -570,7 +622,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Loop OFF',
-        style: { text: '⟲\\nLOOP OFF', size: 18, color: 0xffffff, bgcolor: 0x444488 },
+        style: { text: '⟲\\nLOOP\\nOFF', size: 18, color: 0xffffff, bgcolor: 0x444488 },
         steps: [ { down: [ { actionId: 'bm_set_playback_loop', options: { enable: false, timeline: false } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -578,7 +630,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Stop=Freeze Last',
-        style: { text: '🧊\\nFREEZE LAST', size: 18, color: 0xffffff, bgcolor: 0x884444 },
+        style: { text: '🧊\\nFREEZE\\nLAST', size: 16, color: 0xffffff, bgcolor: 0x884444 },
         steps: [ { down: [ { actionId: 'bm_set_stop_mode', options: { mode: 1 } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -602,7 +654,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Seek 50%',
-        style: { text: '🎯\\nSEEK 50%', size: 18, color: 0xffffff, bgcolor: 0x446644 },
+        style: { text: '🎯\\nSEEK\\n50%', size: 18, color: 0xffffff, bgcolor: 0x446644 },
         steps: [ { down: [ { actionId: 'bm_seek_timeline_pos', options: { pos: 0.5 } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -610,7 +662,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Clear Playlist',
-        style: { text: '🧹\\nCLEAR PL', size: 18, color: 0xffffff, bgcolor: 0x664466 },
+        style: { text: '🧹\\nCLEAR\\nPL', size: 18, color: 0xffffff, bgcolor: 0x664466 },
         steps: [ { down: [ { actionId: 'bm_clear_playlist' } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -626,7 +678,7 @@ class RS422VTRInstance extends InstanceBase {
         type: 'button',
         category: 'Blackmagic AMP',
         name: 'Append Preset Demo',
-        style: { text: '➕\\nPRESET', size: 18, color: 0xffffff, bgcolor: 0x446666 },
+        style: { text: '➕\\nPRESET', size: 16, color: 0xffffff, bgcolor: 0x446666 },
         steps: [ { down: [ { actionId: 'bm_append_preset', options: { name: 'Demo', in_hh: 0, in_mm: 0, in_ss: 5, in_ff: 0, out_hh: 0, out_mm: 0, out_ss: 10, out_ff: 0 } } ], up: [] } ],
         feedbacks: [ { feedbackId: 'connection_state', options: {}, style: { bgcolor: 0x550000 } } ],
       },
@@ -720,6 +772,7 @@ class RS422VTRInstance extends InstanceBase {
     try {
       this.vtr = new VTR422({ portPath, baudRate, dataBits, parity, stopBits, debug })
       this.bm = new BlackmagicAMP(this.vtr)
+      this.od = new Odetics(this.vtr)
 
       this.vtr.on('ack', () => this.log('debug', 'ACK'))
       this.vtr.on('nak', (m) => this.log('warn', `NAK: ${m.reasons?.join(', ')}`))
