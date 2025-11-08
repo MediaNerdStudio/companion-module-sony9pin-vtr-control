@@ -2,7 +2,7 @@
   "id": "medianerd-sony9pin-vtr",
   "name": "Companion sony9pin VTR Control",
   "shortname": "sony9pin-vtr",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Control Sony 9-pin (RS-422) VTR devices and Blackmagic AMP over RS-422.",
   "author": "MediaNerd",
   "license": "MIT",
@@ -14,7 +14,12 @@
   ],
   "keywords": ["companion", "sony9pin", "rs422", "vtr", "blackmagic", "amp"],
   "manufacturer": "Sony",
-  "products": ["9-pin VTR and Blackmagic AMP Control"],
+  "products": [
+    "9-pin VTR Control",
+    "Blackmagic AMP Control",
+    "Odetics Control",
+    "EVS LSM (Odetics) Control"
+  ],
   "legacyIds": [],
   "runtime": {
     "type": "node18",
