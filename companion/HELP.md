@@ -1,7 +1,9 @@
- - Odetics (category):
-  - Device ID, First/Next, Next, Clip TC, Go LIVE
-  - Cue by TC, Load+Cue by ID, Load ID + Cue TC
 # Sony9pin VTR Control
+
+## Supported protocols
+- Sony 9-pin (RS-422) VTR Control
+- Blackmagic AMP Control (over RS-422)
+- Odetics Control (incl. EVS LSM)
 
 Control Sony 9‑pin (RS‑422) VTR/deck devices and Blackmagic AMP devices from Bitfocus Companion. Uses the public `sony9pin-nodejs` library.
 
