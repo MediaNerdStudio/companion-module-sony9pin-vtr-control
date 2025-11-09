@@ -2,7 +2,7 @@
   "id": "generic-vtrcontrol",
   "name": "Generic VTR Control",
   "shortname": "VTR Control",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Control VTR devices and Blackmagic AMP over RS-422.",
   "author": "MediaNerd",
   "license": "MIT",

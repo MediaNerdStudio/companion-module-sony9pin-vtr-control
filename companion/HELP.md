@@ -1,11 +1,11 @@
-# Sony9pin VTR Control
+# Generic VTR Control
 
 ## Supported protocols
 - Sony 9-pin (RS-422) VTR Control
 - Blackmagic AMP Control (over RS-422)
 - Odetics Control (incl. EVS LSM)
 
-Control Sony 9‑pin (RS‑422) VTR/deck devices and Blackmagic AMP devices from Bitfocus Companion. Uses the public `sony9pin-nodejs` library.
+Control VTR/deck devices over RS‑422 (Sony 9‑pin), Blackmagic AMP devices, and Odetics/EVS LSM from Bitfocus Companion. Uses the public `sony9pin-nodejs` library.
 
 ---
 

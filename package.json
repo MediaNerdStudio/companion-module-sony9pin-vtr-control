@@ -1,7 +1,7 @@
 {
   "name": "@medianerd/generic-vtrcontrol",
   "displayName": "Generic VTR Control",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "private": true,
   "description": "Bitfocus Companion module to control VTR devices and Blackmagic AMP over RS-422.",
   "homepage": "https://github.com/MediaNerdStudio/generic-vtrcontrol",
@@ -30,6 +30,6 @@
   "license": "MIT",
   "dependencies": {
     "@companion-module/base": "^1.7.0",
-    "sony9pin-nodejs": "0.6.4"
+    "sony9pin-nodejs": "0.6.5"
   }
 }

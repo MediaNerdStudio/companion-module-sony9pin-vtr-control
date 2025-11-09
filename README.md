@@ -1,6 +1,6 @@
-# Sony RS-422 VTR Control – Bitfocus Companion Module
+# Generic VTR Control – Bitfocus Companion Module
 
-Control Sony 9-pin (RS-422) VTR/deck devices from Bitfocus Companion using the MediaNerd `sony9pin-nodejs` library.
+Control VTR/deck devices over RS-422 from Bitfocus Companion using the MediaNerd `sony9pin-nodejs` library. Supports Sony 9‑pin, Blackmagic AMP, and Odetics (incl. EVS LSM).
 
 - Connection: Windows COM port (38400 8O1 by default)
 - Actions: Play, Stop, Rewind, Fast Forward, Record, Standby On/Off, Cue Up with Data, Current Time Sense (Auto/LTC/VITC), Status Sense
@@ -49,4 +49,4 @@ Tested with these RS‑422 interfaces and device server:
 
 ## Notes
 - Requires Node 18+
-- Depends on `sony9pin-nodejs@0.6.3` for Odetics helpers and retains AMP helpers
+- Depends on `sony9pin-nodejs@0.6.5` for latest Odetics cue helpers and EVS LSM ID fix
