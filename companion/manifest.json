@@ -1,21 +1,24 @@
 {
-  "id": "medianerd-sony9pin-vtr",
-  "name": "Companion sony9pin VTR Control",
-  "shortname": "sony9pin-vtr",
+  "id": "generic-vtrcontrol",
+  "name": "Generic VTR Control",
+  "shortname": "VTR Control",
   "version": "0.2.10",
-  "description": "Control Sony 9-pin (RS-422) VTR devices and Blackmagic AMP over RS-422.",
+  "description": "Control VTR devices and Blackmagic AMP over RS-422.",
   "author": "MediaNerd",
   "license": "MIT",
-  "homepage": "https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control",
-  "repository": "git+https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control.git",
-  "bugs": "https://github.com/MediaNerdStudio/companion-module-sony9pin-vtr-control/issues",
+  "homepage": "https://github.com/MediaNerdStudio/generic-vtrcontrol",
+  "repository": "git+https://github.com/MediaNerdStudio/generic-vtrcontrol.git",
+  "bugs": "https://github.com/MediaNerdStudio/generic-vtrcontrol/issues",
   "maintainers": [
     { "name": "MediaNerd" }
   ],
-  "keywords": ["companion", "sony9pin", "rs422", "vtr", "blackmagic", "amp", "odetics", "evs", "lsm"],
-  "manufacturer": "Sony",
+  "keywords": ["rs422", "vtr", "blackmagic", "amp", "bvw75", "odetics", "evs", "lsm"],
+  "manufacturer": "Generic",
   "products": [
-    "VTR Control"
+    "VTR Control",
+    "Blackmagic AMP Control",
+    "Odetics Control",
+    "EVS LSM (Odetics) Control"
   ],
   "legacyIds": [],
   "runtime": {
