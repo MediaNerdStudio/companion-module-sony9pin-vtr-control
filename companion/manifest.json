@@ -4,13 +4,14 @@
   "shortname": "VTR Control",
   "version": "0.2.11",
   "description": "Control VTR devices and Blackmagic AMP over RS-422.",
-  "author": "MediaNerd",
   "license": "MIT",
-  "homepage": "https://github.com/MediaNerdStudio/generic-vtrcontrol",
-  "repository": "git+https://github.com/MediaNerdStudio/generic-vtrcontrol.git",
-  "bugs": "https://github.com/MediaNerdStudio/generic-vtrcontrol/issues",
+  "repository": "git+https://github.com/bitfocus/companion-module-generic-vtrcontrol.git",
+	"bugs": "https://github.com/bitfocus/companion-module-generic-vtrcontrol/issues",
   "maintainers": [
-    { "name": "MediaNerd" }
+    {
+      "name": "MediaNerd",
+      "email": "info@medianerdstudio.com"
+    }
   ],
   "keywords": ["rs422", "vtr", "blackmagic", "amp", "bvw75", "odetics", "evs", "lsm"],
   "manufacturer": "Generic",
@@ -26,6 +27,5 @@
     "api": "nodejs-ipc",
     "apiVersion": "0.0.0",
     "entrypoint": "../index.js"
-  },
-  "platforms": ["win32", "darwin", "linux"]
+  }
 }
